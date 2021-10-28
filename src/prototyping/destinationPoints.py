@@ -67,11 +67,11 @@ def unwarp(img, src, dst):
     return un_warped, H
 
 
-corners = [(70, 42), (1115, 129), (30, 695), (1077, 766)] # realTraining2
-#corners = [(246, 350), (489, 163), (480, 488), (685, 249)]
+#corners = [(70, 42), (1115, 129), (30, 695), (1077, 766)] # realTraining2
+corners = [(228, 346), (482, 163), (479, 487), (688, 247)] #test.jpg
 #corners = [(446, 1226), (1760, 1191), (431, 2100), (1782, 2066)] # realTest1
 destination_points, h, w = get_destination_points(corners)
-img = cv2.imread('./resources/realTraining2.jpg')
+img = cv2.imread('./test.jpg')
 
 un_warped, H = unwarp(img, np.float32(corners), destination_points)
 
@@ -81,7 +81,7 @@ f, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 8))
 ax1.imshow(un_warped)
 ax2.imshow(cropped)
 
-cropped = cv2.rotate(cropped, cv2.ROTATE_180)
+#cropped = cv2.rotate(cropped, cv2.ROTATE_180)
 
 cv2.imwrite("./result.jpg", cropped)
 
