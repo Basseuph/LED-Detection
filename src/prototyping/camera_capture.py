@@ -12,7 +12,7 @@ corners = []
 
 def capture_camera():
     cap = cv2.VideoCapture(0)
-    ret, img = cap.read()
+
 
     cv2.namedWindow("Camera")
     cv2.setMouseCallback("Camera", on_click)
@@ -20,6 +20,7 @@ def capture_camera():
     print("Please click on the " + messages[0] + " corner")
 
     while True:
+        ret, img = cap.read()
         cv2.imshow("Camera", img)
 
         if done:
@@ -37,3 +38,6 @@ def on_click(event, x, y, flags, param):
     else:
         print("Done!")
         done = True
+
+
+capture_camera()
