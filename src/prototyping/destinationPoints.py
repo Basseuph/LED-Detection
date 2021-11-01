@@ -66,6 +66,19 @@ def unwarp(img, src, dst):
     #plt.show()
     return un_warped, H
 
+def detect_status(corners, img):
+    destination_points, h, w = get_destination_points(corners)
+    un_warped, H = unwarp(img, np.float32(corners), destination_points)
+    cropped = un_warped[0:h, 0:w]
+    led1, led2 = getRoiByImage(cropped, H)
+
+    led1 = cv2.cvtColor(led1, cv2.COLOR_RGB2HSV)
+    led2 = cv2.cvtColor(led2, cv2.COLOR_RGB2HSV)
+
+    mean1 = led1[..., 2].mean()
+    mean2 = led2[..., 2].mean()
+
+    return mean1 > 200, mean2 > 200
 
 def show_leds(corners, img):
 
