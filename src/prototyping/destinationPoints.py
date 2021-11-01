@@ -28,12 +28,12 @@ def get_destination_points(corners):
 
     destination_corners = np.float32([(0, 0), (w - 1, 0), (0, h - 1), (w - 1, h - 1)])
 
-    print('\nThe destination points are: \n')
-    for index, c in enumerate(destination_corners):
-        character = chr(65 + index) + "'"
-        print(character, ':', c)
+    #print('\nThe destination points are: \n')
+    #for index, c in enumerate(destination_corners):
+    #    character = chr(65 + index) + "'"
+    #    print(character, ':', c)
 
-    print('\nThe approximated height and width of the original image is: \n', (h, w))
+    #print('\nThe approximated height and width of the original image is: \n', (h, w))
     return destination_corners, h, w
 
 
@@ -48,22 +48,22 @@ def unwarp(img, src, dst):
     """
     h, w = img.shape[:2]
     H, _ = cv2.findHomography(src, dst, method=cv2.RANSAC, ransacReprojThreshold=3.0)
-    print('\nThe homography matrix is: \n', H)
+    #print('\nThe homography matrix is: \n', H)
     un_warped = cv2.warpPerspective(img, H, (w, h), flags=cv2.INTER_LINEAR)
 
     # plot
 
-    f, (ax1, ax2) = plt.subplots(1, 2)
-    ax1.imshow(img)
+    #f, (ax1, ax2) = plt.subplots(1, 2)
+    #ax1.imshow(img)
     x = [src[0][0], src[2][0], src[3][0], src[1][0], src[0][0]]
     y = [src[0][1], src[2][1], src[3][1], src[1][1], src[0][1]]
-    ax1.plot(x, y, color='yellow', linewidth=3)
-    ax1.set_ylim([h, 0])
-    ax1.set_xlim([0, w])
-    ax1.set_title('Targeted Area in Original Image')
-    ax2.imshow(un_warped)
-    ax2.set_title('Unwarped Image')
-    plt.show()
+    #ax1.plot(x, y, color='yellow', linewidth=3)
+    #ax1.set_ylim([h, 0])
+    #ax1.set_xlim([0, w])
+    #ax1.set_title('Targeted Area in Original Image')
+    #ax2.imshow(un_warped)
+    #ax2.set_title('Unwarped Image')
+    #plt.show()
     return un_warped, H
 
 
@@ -79,12 +79,13 @@ def show_leds(corners, img):
     # f.subplots_adjust(hspace=.2, wspace=.05)
     ax1.imshow(un_warped)
     ax2.imshow(cropped)
+    plt.show()
 
     #cropped = cv2.rotate(cropped, cv2.ROTATE_180)
 
     cv2.imwrite("./result.jpg", cropped)
 
-    plt.show()
+
 
     r_p1 = getRoiByImage(cropped, H)
     img = cv2.circle(img, r_p1[0:1], 5, (0, 0, 255), 3)
