@@ -44,8 +44,14 @@ def getRoiByImage(img, H):
 
     #cv2.imshow("thresh", thresh)
 
-    cv2.imshow("Led1", led1)
-    cv2.imshow("Led2", led2)
-    cv2.waitKey(0)
+    #f, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 8))
+    #ax1.imshow(led1)
+    #ax2.imshow(led2)
+    #plt.show()
+
+    #cv2.imshow("Led1", led1)
+    #cv2.imshow("Led2", led2)
+    #cv2.waitKey(0)
+    return led1, led2
 
 
