@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 #source https://blog.ekbana.com/skew-correction-using-corner-detectors-and-homography-fda345e42e65
-from src.prototyping.roi_dedection import getRoiByImage
+from src.prototyping.roi_dedection import getRoiByImage, get_roi_by_dest_corners
 
 
 def get_destination_points(corners):
@@ -104,6 +104,7 @@ def show_leds(corners, img):
     img = cv2.circle(img, r_p1[0:1], 5, (0, 0, 255), 3)
 
 #corners = [(70, 42), (1115, 129), (30, 695), (1077, 766)] # realTraining2
-corners = [(228, 346), (482, 163), (479, 487), (688, 247)] #angleTest.jpg
-#corners = [(446, 1226), (1760, 1191), (431, 2100), (1782, 2066)] # realTest1
-img = cv2.imread('resources/angleTest.jpg')
+#corners = [(228, 346), (482, 163), (479, 487), (688, 247)] #angleTest.jpg
+#corners = [(111,307), (437, 300), (109, 525), (440, 517)] # realTest1
+#img = cv2.imread('resources/realTest1.jpg')
+#detect_status(corners, img)
