@@ -57,27 +57,20 @@ def getRoiByImage(img, H):
     #cv2.waitKey(0)
     return led1, led2
 
-def get_roi_by_dest_corners(img, top_left_corner, H, hw):
-    measured_corners = np.array([[1, 100], [35, 151], [1, 151], [35, 202]])
+def get_roi_by_dest_corners(img, H):
+    measured_corners = np.array([[1, 69, 1], [12, 105, 1], [1, 115, 1], [9, 147, 1]])
 
-    scale_x = img.shape[1] / 1351
-    scale_y = img.shape[0] / 875
+    hinv = numpy.linalg.inv(H)
 
-    offset_x = top_left_corner[0]
-    offset_y = top_left_corner[1]
-
-
-
-    # add offset
     for corner in measured_corners:
-        corner[0] = round(abs(corner[0] + offset_x))
-        corner[1] = round(abs(corner[1] + offset_y))
+        corner[0] = corner[0]
+        corner[1] = corner[1]
 
-    # scale measured corners to size of new image
-    measured_corners = np.matmul(measured_corners, np.array([[scale_x, 0], [0, scale_y]]))
+        t_corner = np.matmul(hinv, corner)
+        corner[0] = t_corner[0]
+        corner[1] = t_corner[1]
 
-    transformed_corners = cv2.perspectiveTransform(np.array([measured_corners]), H)[0]
-
+    transformed_corners = measured_corners.astype(int)
 
 
     transformed_corners = transformed_corners.astype(int)
@@ -86,6 +79,7 @@ def get_roi_by_dest_corners(img, top_left_corner, H, hw):
     led2 = img[transformed_corners[2][1]:transformed_corners[3][1], transformed_corners[2][0]:transformed_corners[3][0]]
 
 
-    cv2.imshow("Led1", led1)
-    cv2.imshow("Led2", led2)
-    cv2.waitKey(0)
+    #cv2.imshow("Led1", led1)
+    #cv2.imshow("Led2", led2)
+    #cv2.waitKey(0)
+    return led1, led2
