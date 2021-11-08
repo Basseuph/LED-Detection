@@ -2,13 +2,16 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
+# reference coordinates are taken from realTraining2
+import numpy.linalg
+
 
 def getRoiByImage(img, H):
     # from top left
 
-    # 1351x875
-    scale_x = img.shape[1] / 1351
-    scale_y = img.shape[0] / 875
+    # 1049x654
+    scale_x = img.shape[1] / 1049
+    scale_y = img.shape[0] / 654
 
 
     #p1 = np.array([20,20,1])
@@ -21,11 +24,11 @@ def getRoiByImage(img, H):
 
     #return r_p1
 
-    led1_top_left = np.rint(np.array([1 * scale_x, 100 * scale_y, 1])).astype(int)
-    led1_bottom_right = np.rint(np.array([35 * scale_x, 151 * scale_y, 1])).astype(int)
+    led1_top_left = np.rint(np.array([1 * scale_x, 69 * scale_y, 1])).astype(int)
+    led1_bottom_right = np.rint(np.array([12 * scale_x, 105 * scale_y, 1])).astype(int)
 
-    led2_top_left = np.rint(np.array([1 * scale_x, 151 * scale_y, 1])).astype(int)
-    led2_bottom_right = np.rint(np.array([35 * scale_x, 202 * scale_y, 1])).astype(int)
+    led2_top_left = np.rint(np.array([1 * scale_x, 115 * scale_y, 1])).astype(int)
+    led2_bottom_right = np.rint(np.array([9 * scale_x, 147 * scale_y, 1])).astype(int)
 
     # led1_top_left = np.rint(H.matmul(np.array([1 * scale_x, 100 * scale_y, 1]))).astype(int)
     # led1_bottom_right = np.rint(H.matmul(np.array([35 * scale_x, 151 * scale_y, 1]))).astype(int)
