@@ -57,29 +57,47 @@ def getRoiByImage(img, H):
     #cv2.waitKey(0)
     return led1, led2
 
-def get_roi_by_dest_corners(img, H):
-    measured_corners = np.array([[1, 69, 1], [12, 105, 1], [1, 115, 1], [9, 147, 1]])
+
+def get_roi_by_dest_corners(img, H, crn_pts_src):
+    # 1024x768 realTraining22, cropped 432x283
+    # coordinates from realTraining22, relative to top left corner
+    measured_corners = np.array([[0, 32, 1], [5, 43, 1], [0, 51, 1], [4, 62, 1]])
+    measured_hw = (432, 283)
+
+    scale_x = abs(crn_pts_src[0][0] - crn_pts_src[1][0]) / measured_hw[0]
+    scale_y = abs(crn_pts_src[0][1] - crn_pts_src[2][1]) / measured_hw[1]
 
     hinv = numpy.linalg.inv(H)
 
     for corner in measured_corners:
-        corner[0] = corner[0]
-        corner[1] = corner[1]
-
+        corner[0] = corner[0] * scale_x
+        corner[1] = corner[1] * scale_y
         t_corner = np.matmul(hinv, corner)
         corner[0] = t_corner[0]
         corner[1] = t_corner[1]
 
     transformed_corners = measured_corners.astype(int)
 
-
-    transformed_corners = transformed_corners.astype(int)
-
-    led1 = img[transformed_corners[0][1]:transformed_corners[1][1], transformed_corners[0][0]:transformed_corners[1][0]]
-    led2 = img[transformed_corners[2][1]:transformed_corners[3][1], transformed_corners[2][0]:transformed_corners[3][0]]
-
+    led1, led2 = leds_by_corners(img, transformed_corners)
 
     #cv2.imshow("Led1", led1)
     #cv2.imshow("Led2", led2)
     #cv2.waitKey(0)
+    return led1, led2
+
+
+def leds_by_corners(img, corners):
+    """
+    returns the led roi
+    :param img: The whole image of the board
+    :param corners: The corners selected by the user
+    :return:
+    """
+    # flips the orientation if needed
+    led1_coors = (corners[0], corners[1]) if corners[0][1] < corners[1][1] else (corners[1], corners[0])
+    led2_coors = (corners[2], corners[3]) if corners[2][1] < corners[3][1] else (corners[3], corners[2])
+
+    led1 = img[led1_coors[0][1]:led1_coors[1][1], led1_coors[0][0]:led1_coors[1][0]]
+    led2 = img[led2_coors[0][1]:led2_coors[1][1], led2_coors[0][0]:led2_coors[1][0]]
+
     return led1, led2
