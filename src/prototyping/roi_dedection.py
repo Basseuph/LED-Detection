@@ -69,6 +69,8 @@ def get_roi_by_dest_corners(img, H, crn_pts_src):
 
     hinv = numpy.linalg.inv(H)
 
+    img = cv2.rotate(img, cv2.ROTATE_180)
+
     for corner in measured_corners:
         corner[0] = corner[0] * scale_x
         corner[1] = corner[1] * scale_y
@@ -94,8 +96,8 @@ def leds_by_corners(img, corners):
     :return:
     """
     # flips the orientation if needed
-    led1_coors = (corners[0], corners[1]) if corners[0][1] < corners[1][1] else (corners[1], corners[0])
-    led2_coors = (corners[2], corners[3]) if corners[2][1] < corners[3][1] else (corners[3], corners[2])
+    led1_coors = (corners[0], corners[1]) if corners[0][0] < corners[1][0] else (corners[1], corners[0])
+    led2_coors = (corners[2], corners[3]) if corners[2][0] < corners[3][0] else (corners[3], corners[2])
 
     led1 = img[led1_coors[0][1]:led1_coors[1][1], led1_coors[0][0]:led1_coors[1][0]]
     led2 = img[led2_coors[0][1]:led2_coors[1][1], led2_coors[0][0]:led2_coors[1][0]]

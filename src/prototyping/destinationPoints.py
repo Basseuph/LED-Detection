@@ -79,7 +79,7 @@ def detect_status(corners, img):
     mean1 = led1[..., 2].mean()
     mean2 = led2[..., 2].mean()
 
-    return mean1 > 220, mean2 > 220
+    return mean1 > 200, mean2 > 200
 
 def show_leds(corners, img):
 
