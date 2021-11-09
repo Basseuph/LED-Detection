@@ -108,7 +108,7 @@ def show_leds(corners, img):
 
 if __name__ == '__main__':
     #corners = [(83, 32), (1093, 104), (43, 689), (1028, 757)]  # realTraining 2
-    #corners = [(223, 227), (654, 257), (205, 510), (636, 540)] #realTraining22
+    #corners = [(223, 227), (654, 257), (205, 510), (636, 540)] #reference.jpg
     corners = [(228, 346), (482, 163), (479, 487), (688, 247)] #angleTest.jpg
     #corners = [(111,307), (437, 300), (107, 525), (440, 517)] # realTest1
     #corners = np.array([[871, 884], [2573, 1012], [795, 1988], [2476, 2109]])  # realTraining3 rotated

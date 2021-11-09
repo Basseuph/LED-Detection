@@ -59,8 +59,8 @@ def getRoiByImage(img, H):
 
 
 def get_roi_by_dest_corners(img, H, crn_pts_src):
-    # 1024x768 realTraining22, cropped 432x283
-    # coordinates from realTraining22, relative to top left corner
+    # 1024x768 reference.jpg, cropped 432x283
+    # coordinates from reference.jpg, relative to top left corner
     measured_corners = np.array([[0, 32, 1], [5, 43, 1], [0, 51, 1], [4, 62, 1]])
     measured_hw = (432, 283)
 
