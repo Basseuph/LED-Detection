@@ -2,7 +2,7 @@ from cv2 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
-#source https://blog.ekbana.com/skew-correction-using-corner-detectors-and-homography-fda345e42e65
+# source https://blog.ekbana.com/skew-correction-using-corner-detectors-and-homography-fda345e42e65
 from src.prototyping.roi_dedection import getRoiByImage, get_roi_by_dest_corners
 
 
@@ -66,6 +66,7 @@ def unwarp(img, src, dst):
     #plt.show()
     return un_warped, H
 
+
 def detect_status(corners, img):
     img = cv2.rotate(img, cv2.ROTATE_180)
     destination_points, h, w = get_destination_points(corners)
@@ -80,6 +81,7 @@ def detect_status(corners, img):
     mean2 = led2[..., 2].mean()
 
     return mean1 > 200, mean2 > 200
+
 
 def show_leds(corners, img):
 
@@ -96,7 +98,7 @@ def show_leds(corners, img):
     # ax2.imshow(cropped)
     # plt.show()
 
-    #cropped = cv2.rotate(cropped, cv2.ROTATE_180)
+    # cropped = cv2.rotate(cropped, cv2.ROTATE_180)
 
     cv2.imwrite("./result.jpg", cropped)
 
