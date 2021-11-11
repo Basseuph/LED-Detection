@@ -5,9 +5,11 @@ import os
 
 from matplotlib import pyplot as plt
 
+from src.prototyping.roi_dedection import get_roi_by_dest_corners
+
 if __name__ == '__main__':
-    refFilename = os.path.join("resources", "realTraining1.jpg")
-    imFilename = os.path.join("resources", "realTest1.jpg")
+    refFilename = os.path.join("referenceCropped.jpg")
+    imFilename = os.path.join("resources", "moreUniqueExamples", "4.jpg")
 
     # Read reference image
     print("Reading reference image : ", refFilename)
@@ -30,13 +32,16 @@ if __name__ == '__main__':
     # store all the good matches as per Lowe's ratio test.
     good = []
     for m, n in matches:
-        if m.distance < 0.7 * n.distance:
+        if m.distance < 0.80 * n.distance:
             good.append(m)
 
     if len(good) > 10:
         src_pts = np.float32([kp1[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
         dst_pts = np.float32([kp2[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
         M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
+
+        get_roi_by_dest_corners(img2, M)
+
         matchesMask = mask.ravel().tolist()
         h, w, d = img1.shape
         pts = np.float32([[0, 0], [0, h - 1], [w - 1, h - 1], [w - 1, 0]]).reshape(-1, 1, 2)
