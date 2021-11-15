@@ -72,7 +72,6 @@ def unwarp(img, src, dst):
 
 
 def detect_status(corners, img):
-    img = cv2.rotate(img, cv2.ROTATE_180)
     destination_points, h, w = get_destination_points(corners)
     #un_warped, H = unwarp(img, np.float32(corners), destination_points)
     measured_corners = np.array([[0, 0], [432, 0], [0, 283], [432, 283]])
