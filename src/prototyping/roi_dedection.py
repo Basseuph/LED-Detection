@@ -54,11 +54,9 @@ def getRoiByImage(img, H):
 def get_roi_by_dest_corners(img, H):
     # 1024x768 reference.jpg, cropped 432x283
     # coordinates from reference.jpg, relative to top left corner
-    measured_corners = np.array([[0, 32, 1], [5, 43, 1], [0, 51, 1], [4, 62, 1]])
+    #measured_corners = np.array([[0, 32, 1], [5, 43, 1], [0, 51, 1], [4, 62, 1]])
+    led_center = np.array([[2, 38, 1], [2, 57, 1]])
     measured_hw = (432, 283)
-
-    #cv2.rectangle(img, (crn_pts_src[0][0], crn_pts_src[0][1]),
-    #              (crn_pts_src[3][0], crn_pts_src[3][1]), (255, 0, 0), 2)
 
     #scale_x = abs(crn_pts_src[0][0] - crn_pts_src[2][0]) / measured_hw[0]
     #scale_y = abs(crn_pts_src[0][1] - crn_pts_src[1][1]) / measured_hw[1]
@@ -67,42 +65,35 @@ def get_roi_by_dest_corners(img, H):
     if inv is None:
         inv = H
 
-    for corner in measured_corners:
-        corner[0] = corner[0]
-        corner[1] = corner[1]
-        t_corner = np.matmul(inv, corner)
+
+    for corner in led_center:
+        corner[0] = corner[0]# * scale_x
+        corner[1] = corner[1]# * scale_y
+        t_corner = np.matmul(H, corner)
         corner[0] = t_corner[0]
         corner[1] = t_corner[1]
 
-    transformed_corners = measured_corners.astype(int)
+    leds = led_by_circle_coordinates(img, led_center.astype(int), 5)
 
-    led1, led2 = leds_by_corners(img, transformed_corners)
+    #cv2.rectangle(img, (transformed_corners[0][0], transformed_corners[0][1]),
+    #              (transformed_corners[1][0], transformed_corners[1][1]), (255, 0, 0), 2)
+    #cv2.rectangle(img, (transformed_corners[2][0], transformed_corners[2][1]),
+    #              (transformed_corners[3][0], transformed_corners[3][1]), (255, 255, 0), 2)
 
-    cv2.rectangle(img, (transformed_corners[0][0], transformed_corners[0][1]),
-                  (transformed_corners[1][0], transformed_corners[1][1]), (255, 0, 0), 2)
-    cv2.rectangle(img, (transformed_corners[2][0], transformed_corners[2][1]),
-                  (transformed_corners[3][0], transformed_corners[3][1]), (255, 255, 0), 2)
-
-    #cv2.imshow("Led1", led1)
-    #cv2.imshow("Led2", led2)
-    cv2.namedWindow("Result", cv2.WINDOW_NORMAL)
-    cv2.imshow("Result", img)
-    cv2.waitKey(0)
-    return led1, led2
+    cv2.imshow("Led1", leds[0])
+    cv2.imshow("Led2", leds[1])
+    #cv2.namedWindow("Result", cv2.WINDOW_NORMAL)
+    #cv2.imshow("Result", img)
+    #cv2.waitKey(0)
+    return leds[0], leds[1]
 
 
-def leds_by_corners(img, corners):
-    """
-    returns the led roi
-    :param img: The whole image of the board
-    :param corners: The corners selected by the user
-    :return:
-    """
-    # flips the orientation if needed
-    led1_coors = (corners[0], corners[1]) if corners[0][0] < corners[1][0] else (corners[1], corners[0])
-    led2_coors = (corners[2], corners[3]) if corners[2][0] < corners[3][0] else (corners[3], corners[2])
+def led_by_circle_coordinates(img, circle_centers, r):
+    leds = []
+    for center in circle_centers:
+        top_left = (center[0] - r, center[1] - r)
+        bottom_right = (center[0] + r, center[1] + r)
+        led = img[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]]
+        leds.append(led)
 
-    led1 = img[led1_coors[0][1]:led1_coors[1][1], led1_coors[0][0]:led1_coors[1][0]]
-    led2 = img[led2_coors[0][1]:led2_coors[1][1], led2_coors[0][0]:led2_coors[1][0]]
-
-    return led1, led2
+    return leds
