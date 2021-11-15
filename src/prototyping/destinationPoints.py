@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 # source https://blog.ekbana.com/skew-correction-using-corner-detectors-and-homography-fda345e42e65
 from src.prototyping import sift_detect
-from src.prototyping.roi_dedection import getRoiByImage, get_roi_by_dest_corners
+from src.prototyping.roi_detection import getRoiByImage, get_roi_by_dest_corners
 
 inv = None
 

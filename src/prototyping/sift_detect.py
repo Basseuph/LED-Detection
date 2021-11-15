@@ -5,7 +5,7 @@ import os
 
 from matplotlib import pyplot as plt
 
-from src.prototyping.roi_dedection import get_roi_by_dest_corners
+from src.prototyping.roi_detection import get_roi_by_dest_corners
 
 
 def homography_by_sift(ref_img, im_img):
