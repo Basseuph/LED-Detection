@@ -31,7 +31,6 @@ def homography_by_sift(ref_img, im_img):
         dst_pts = np.float32([kp2[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
         M, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
 
-        get_roi_by_dest_corners(img2, M)
 
         matchesMask = mask.ravel().tolist()
         h, w, d = ref_img.shape
