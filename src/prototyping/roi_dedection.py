@@ -5,8 +5,6 @@ import matplotlib.pyplot as plt
 # reference coordinates are taken from realTraining2
 import numpy.linalg
 
-inv = None
-
 
 def getRoiByImage(img, H):
     # from top left
@@ -61,9 +59,6 @@ def get_roi_by_dest_corners(img, H):
     #scale_x = abs(crn_pts_src[0][0] - crn_pts_src[2][0]) / measured_hw[0]
     #scale_y = abs(crn_pts_src[0][1] - crn_pts_src[1][1]) / measured_hw[1]
 
-    global inv
-    if inv is None:
-        inv = H
 
 
     for corner in led_center:
