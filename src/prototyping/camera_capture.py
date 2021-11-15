@@ -27,8 +27,7 @@ def capture_camera():
 
         #Loop video if finished
         if not ret:
-            cap.release()
-            cap = cv2.VideoCapture("./resources/piOnOff.mp4")
+            cap.set(cv2.CAP_PROP_POS_FRAMES, 0)
             continue
 
         global img
