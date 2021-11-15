@@ -1,10 +1,14 @@
+import os
+
 from cv2 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
 # source https://blog.ekbana.com/skew-correction-using-corner-detectors-and-homography-fda345e42e65
+from src.prototyping import sift_detect
 from src.prototyping.roi_dedection import getRoiByImage, get_roi_by_dest_corners
 
+inv = None
 
 def get_destination_points(corners):
     """
@@ -71,8 +75,14 @@ def detect_status(corners, img):
     img = cv2.rotate(img, cv2.ROTATE_180)
     destination_points, h, w = get_destination_points(corners)
     #un_warped, H = unwarp(img, np.float32(corners), destination_points)
-    h, _ = cv2.findHomography(np.float32(corners), destination_points, method=cv2.RANSAC, ransacReprojThreshold=3.0)
-    led1, led2 = get_roi_by_dest_corners(img, h, corners)
+    measured_corners = np.array([[0, 0], [432, 0], [0, 283], [432, 283]])
+    #h, _ = cv2.findHomography(np.float32(corners), measured_corners, method=cv2.RANSAC, ransacReprojThreshold=3.0)
+
+    global inv
+    if inv is None:
+        inv = sift_detect.homography_by_sift(cv2.imread(os.path.join("referenceCropped.jpg"), cv2.IMREAD_COLOR), img)
+
+    led1, led2 = get_roi_by_dest_corners(img, inv)
 
     led1 = cv2.cvtColor(led1, cv2.COLOR_RGB2HSV)
     led2 = cv2.cvtColor(led2, cv2.COLOR_RGB2HSV)
