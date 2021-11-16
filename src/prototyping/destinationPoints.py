@@ -17,9 +17,9 @@ def detect_status(img):
     global inv
     global corners
     if inv is None:
-        inv = sift_detect.homography_by_sift(cv2.imread(os.path.join("referenceCropped.jpg"), cv2.IMREAD_COLOR), img)
+        inv, corners = sift_detect.homography_by_sift(cv2.imread(os.path.join("referenceCropped.jpg"), cv2.IMREAD_COLOR), img)
 
-    led1, led2 = get_roi_by_dest_corners(img, inv)
+    led1, led2 = get_roi_by_dest_corners(img, inv, corners)
 
     led1 = cv2.cvtColor(led1, cv2.COLOR_RGB2HSV)
     led2 = cv2.cvtColor(led2, cv2.COLOR_RGB2HSV)

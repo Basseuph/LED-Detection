@@ -44,7 +44,7 @@ def capture_camera():
             cv2.waitKey(100)
 
         if len(corners) == 4:
-            s1, s2 = detect_status(corners, img)
+            s1, s2 = detect_status(img)
 
             if s1 != old_s1:
                 print("LED1 on: " + str(s1))

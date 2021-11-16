@@ -49,15 +49,15 @@ def getRoiByImage(img, H):
     return led1, led2
 
 
-def get_roi_by_dest_corners(img, H):
+def get_roi_by_dest_corners(img, H, crn_pts_src):
     # 1024x768 reference.jpg, cropped 432x283
     # coordinates from reference.jpg, relative to top left corner
     #measured_corners = np.array([[0, 32, 1], [5, 43, 1], [0, 51, 1], [4, 62, 1]])
     led_center = np.array([[2, 38, 1], [2, 57, 1]])
     measured_hw = (432, 283)
 
-    #scale_x = abs(crn_pts_src[0][0] - crn_pts_src[2][0]) / measured_hw[0]
-    #scale_y = abs(crn_pts_src[0][1] - crn_pts_src[1][1]) / measured_hw[1]
+    scale_x = abs(crn_pts_src[0][0] - crn_pts_src[2][0]) / measured_hw[0]
+    scale_y = abs(crn_pts_src[0][1] - crn_pts_src[1][1]) / measured_hw[1]
 
 
 
@@ -68,12 +68,8 @@ def get_roi_by_dest_corners(img, H):
         corner[0] = t_corner[0]
         corner[1] = t_corner[1]
 
-    leds = led_by_circle_coordinates(img, led_center.astype(int), 5)
+    leds = led_by_circle_coordinates(img, led_center.astype(int), 5 * round((scale_x + scale_y) / 2))
 
-    #cv2.rectangle(img, (transformed_corners[0][0], transformed_corners[0][1]),
-    #              (transformed_corners[1][0], transformed_corners[1][1]), (255, 0, 0), 2)
-    #cv2.rectangle(img, (transformed_corners[2][0], transformed_corners[2][1]),
-    #              (transformed_corners[3][0], transformed_corners[3][1]), (255, 255, 0), 2)
 
     cv2.imshow("Led1", leds[0])
     cv2.imshow("Led2", leds[1])

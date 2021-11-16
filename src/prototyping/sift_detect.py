@@ -26,6 +26,7 @@ def homography_by_sift(ref_img, im_img):
             good.append(m)
 
     M = None
+    dst = None
     if len(good) > 10:
         src_pts = np.float32([kp1[m.queryIdx].pt for m in good]).reshape(-1, 1, 2)
         dst_pts = np.float32([kp2[m.trainIdx].pt for m in good]).reshape(-1, 1, 2)
@@ -34,9 +35,10 @@ def homography_by_sift(ref_img, im_img):
 
         matchesMask = mask.ravel().tolist()
         h, w, d = ref_img.shape
-        pts = np.float32([[0, 0], [0, h - 1], [w - 1, h - 1], [w - 1, 0]]).reshape(-1, 1, 2)
-        dst = cv2.perspectiveTransform(pts, M)
+        pts = np.float32([[0, 0], [0, h - 1], [w - 1, h - 1], [w - 1, 0]])
+        dst = cv2.perspectiveTransform(np.array([pts]), M)[0]
         im_img = cv2.polylines(im_img, [np.int32(dst)], True, 255, 3, cv2.LINE_AA)
+        dst[1], dst[3] = dst[3], dst[1]
     else:
         print("Not enough matches are found - {}/{}".format(len(good), 10))
         matchesMask = None
@@ -47,9 +49,12 @@ def homography_by_sift(ref_img, im_img):
                        flags=2)
     img3 = cv2.drawMatches(ref_img, kp1, im_img, kp2, good, None, **draw_params)
     plt.imshow(img3, 'gray'), plt.show()
-    return M
+    return M, dst
 
 
 if __name__ == '__main__':
-    homography_by_sift(cv2.imread(os.path.join("referenceCropped.jpg"), cv2.IMREAD_COLOR),
-                       cv2.imread(os.path.join("resources", "realTraining2.jpg"), cv2.IMREAD_COLOR))
+    ref = cv2.imread(os.path.join("referenceCropped.jpg"), cv2.IMREAD_COLOR)
+    img = cv2.imread(os.path.join("resources", "moreUniqueExamples", "2.jpg"), cv2.IMREAD_COLOR)
+    h, corners = homography_by_sift(ref, img)
+    get_roi_by_dest_corners(img, h, corners)
+    cv2.waitKey(0)
