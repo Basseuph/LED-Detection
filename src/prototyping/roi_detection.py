@@ -53,28 +53,22 @@ def get_roi_by_dest_corners(img, H, crn_pts_src):
     # 1024x768 reference.jpg, cropped 432x283
     # coordinates from reference.jpg, relative to top left corner
     #measured_corners = np.array([[0, 32, 1], [5, 43, 1], [0, 51, 1], [4, 62, 1]])
-    led_center = np.array([[2, 38, 1], [2, 57, 1]])
+    led_center = np.float32([[2, 38], [2, 57]])
+    #led_center = np.array([[29, 409, 1], [28, 601, 1]]) #ref
     measured_hw = (432, 283)
+    #measured_hw = (4500, 2908) #ref
 
     scale_x = abs(crn_pts_src[0][0] - crn_pts_src[2][0]) / measured_hw[0]
     scale_y = abs(crn_pts_src[0][1] - crn_pts_src[1][1]) / measured_hw[1]
 
-
-
-    for corner in led_center:
-        corner[0] = corner[0]# * scale_x
-        corner[1] = corner[1]# * scale_y
-        t_corner = np.matmul(H, corner)
-        corner[0] = t_corner[0]
-        corner[1] = t_corner[1]
-
-    leds = led_by_circle_coordinates(img, led_center.astype(int), 5 * round((scale_x + scale_y) / 2))
+    led_center = cv2.perspectiveTransform(np.array([led_center]), H)[0]
+    leds = led_by_circle_coordinates(img, led_center.astype(int), round(5 * max(scale_x, scale_y)))
 
 
     cv2.imshow("Led1", leds[0])
     cv2.imshow("Led2", leds[1])
-    #cv2.namedWindow("Result", cv2.WINDOW_NORMAL)
-    #cv2.imshow("Result", img)
+    cv2.namedWindow("Result", cv2.WINDOW_NORMAL)
+    cv2.imshow("Result", img)
     #cv2.waitKey(0)
     return leds[0], leds[1]
 
@@ -86,5 +80,7 @@ def led_by_circle_coordinates(img, circle_centers, r):
         bottom_right = (center[0] + r, center[1] + r)
         led = img[top_left[1]:bottom_right[1], top_left[0]:bottom_right[0]]
         leds.append(led)
+
+        cv2.rectangle(img, top_left, bottom_right, (255, 0, 0), 2)
 
     return leds
