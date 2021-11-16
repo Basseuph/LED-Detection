@@ -4,23 +4,18 @@ from cv2 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 
-from src.prototyping.destinationPoints import show_leds, detect_status
+from src.prototyping.destinationPoints import detect_status
 
-corners = []
 def capture_camera():
     #cap = cv2.VideoCapture(0)
-    cap = cv2.VideoCapture("./resources/piOnOff.mp4")
+    cap = cv2.VideoCapture("./resources/piOnOff3.mp4")
 
 
 
     cv2.namedWindow("Camera", cv2.WINDOW_NORMAL)
-    cv2.setMouseCallback("Camera", on_click)
-    print("Please click on the first corner")
 
     old_s1 = False
     old_s2 = False
-
-    corners = [[1009, 761], [146, 767], [1011, 196], [151, 200]]
 
     while True:
         ret, rec = cap.read()
@@ -35,23 +30,16 @@ def capture_camera():
         cv2.imshow("Camera", rec)
 
         now = time()
-        frameLimit = 10  # frame limiting
+        frameLimit = 30  # frame limiting
 
-        #wait with start of the video until corners are selected
-        while True:
-            if len(corners) >= 4:
-                break
-            cv2.waitKey(100)
+        s1, s2 = detect_status(img)
 
-        if len(corners) == 4:
-            s1, s2 = detect_status(img)
-
-            if s1 != old_s1:
-                print("LED1 on: " + str(s1))
-                old_s1 = s1
-            if s2 != old_s2:
-                print("LED2 on: " + str(s2))
-                old_s2 = s2
+        if s1 != old_s1:
+            print("LED1 on: " + str(s1))
+            old_s1 = s1
+        if s2 != old_s2:
+            print("LED2 on: " + str(s2))
+            old_s2 = s2
 
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
@@ -67,14 +55,6 @@ def capture_camera():
     cap.realease()
     cv2.destroyAllWindows()
 
-def on_click(event, x, y, flags, param):
-    if event == cv2.EVENT_LBUTTONDOWN:
-        corner = [x, y]
-        corners.append(corner)
-        print("Please click on the next corner if not done yet")
 
-
-
-
-
-capture_camera()
+if __name__ == '__main__':
+    capture_camera()
