@@ -24,10 +24,10 @@ def detect_status(img):
     led1 = cv2.cvtColor(led1, cv2.COLOR_RGB2HSV)
     led2 = cv2.cvtColor(led2, cv2.COLOR_RGB2HSV)
 
-    mean1 = led1[..., 2].mean()
-    mean2 = led2[..., 2].mean()
+    mean1 = np.nanmean(led1[..., 2])
+    mean2 = np.nanmean(led2[..., 2])
 
-    return mean1 > 200, mean2 > 200
+    return mean1 > 165, mean2 > 165
 
 
 #if __name__ == '__main__':

@@ -1,3 +1,5 @@
+import math
+
 from cv2 import cv2
 import numpy as np
 import matplotlib.pyplot as plt
@@ -62,8 +64,20 @@ def get_roi_by_dest_corners(img, H, crn_pts_src):
     scale_y = abs(crn_pts_src[0][1] - crn_pts_src[1][1]) / measured_hw[1]
 
     led_center = cv2.perspectiveTransform(np.array([led_center]), H)[0]
-    leds = led_by_circle_coordinates(img, led_center.astype(int), round(5 * max(scale_x, scale_y)))
+    radius = round(5 * max(scale_x, scale_y))
+    leds = led_by_circle_coordinates(img, led_center.astype(int), radius)
 
+    x_coords = np.arange(0, leds[0].shape[0])
+    y_coords = np.arange(0, leds[0].shape[1])
+
+    cx = x_coords.size / 2
+    cy = y_coords.size / 2
+
+    for led in leds:
+        for x in x_coords:
+            for y in y_coords:
+                in_circle = (x - cx)**2 + (y-cy)**2 < radius**2
+                led[x, y] = led[x, y, :] if in_circle else np.array([127, 127, 127])
 
     cv2.imshow("Led1", leds[0])
     cv2.imshow("Led2", leds[1])
