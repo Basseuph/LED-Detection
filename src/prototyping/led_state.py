@@ -32,15 +32,17 @@ def avg(hist: [[int]]) -> int:
 def color(hist: [int]) -> (int, str):
     """
     Returns the maximum of area and the color range of the given histogram.
+    The histogram should be over the hue values of the hsv color space.
+    Note: OpenCV uses [0, 179] as the hue range instead of [0, 359].
     :param hist: A histogram of the hue values.
     :return: The maximum area and the color range.
     """
-    return max([(sum(hist[-29:] + hist[0:31]), "red"),
-                (sum(hist[31:91]), "yellow"),
-                (sum(hist[91:151]), "green"),
-                (sum(hist[151:211]), "blue"),
-                (sum(hist[211:271]), "cyan"),
-                (sum(hist[271:331]), "purple")
+    return max([(sum(hist[-14:] + hist[0:16]), "red"),
+                (sum(hist[16:46]), "yellow"),
+                (sum(hist[46:76]), "green"),
+                (sum(hist[76:106]), "blue"),
+                (sum(hist[106:136]), "cyan"),
+                (sum(hist[136:166]), "purple")
                 ])
 
 
@@ -173,14 +175,6 @@ class LedStateDetector:
 
 
 if __name__ == '__main__':
-    '''
-    led1 = LedStateDetector((830, 120, 915, 200))
-    vid = cv2.VideoCapture("resources/blinkingLED/f.mp4")
-    '''
-    '''
-    led1 = LedStateDetector((154, 240, 180, 260))
-    vid = cv2.VideoCapture("resources/blinkingLED/pc.mp4")
-    '''
     led1 = LedStateDetector((980, 620, 1010, 660))
     led2 = LedStateDetector((980, 660, 1010, 700))
     vid = cv2.VideoCapture("resources/piOnOff.mp4")
