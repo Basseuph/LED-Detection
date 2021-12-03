@@ -1,5 +1,6 @@
 import collections
 import time
+from operator import itemgetter
 
 import cv2
 
@@ -13,6 +14,15 @@ params.filterByCircularity = True
 params.minInertiaRatio = 0.1
 params.minCircularity = 0.1
 _detector = cv2.SimpleBlobDetector_create(params)
+
+color_range = {
+    "red": (-15, 15),
+    "yellow": (15, 45),
+    "green": (45, 75),
+    "blue": (75, 105),
+    "cyan": (105, 135),
+    "purple": (135, 165),
+}
 
 
 def avg(hist: [[int]]) -> int:
@@ -29,27 +39,10 @@ def avg(hist: [[int]]) -> int:
     return int(s / e)
 
 
-def color(hist: [int]) -> (int, str):
-    """
-    Returns the maximum of area and the color range of the given histogram.
-    The histogram should be over the hue values of the hsv color space.
-    Note: OpenCV uses [0, 179] as the hue range instead of [0, 359].
-    :param hist: A histogram of the hue values.
-    :return: The maximum area and the color range.
-    """
-    return max([(sum(hist[-14:] + hist[0:16]), "red"),
-                (sum(hist[16:46]), "yellow"),
-                (sum(hist[46:76]), "green"),
-                (sum(hist[76:106]), "blue"),
-                (sum(hist[106:136]), "cyan"),
-                (sum(hist[136:166]), "purple")
-                ])
-
-
 class LedStateDetector:
     _counter = 0
 
-    def __init__(self, bbox):
+    def __init__(self, bbox, colors=None):
         """
         Bounding box should be (left, top, right, bottom).
         Current LED state can be checked with is_on.
@@ -57,13 +50,17 @@ class LedStateDetector:
         The time since the last state change can be checked using passed_time.
         None is used as an undefined state for color, is_on and passed_time.
         :param bbox: the bounding box to define the LED's location.
+        :param colors: all colors that should be checked for on this LED.
         """
+        if colors is None:
+            colors = []
         self._bbox = bbox
         self._last_brightness = -1
         self._on_values = collections.deque(maxlen=20)
         self._last_state_time = None
         self._off_histogram = None
         self._on_histogram = None
+        self._colors = colors
 
         self.id = LedStateDetector._counter
         LedStateDetector._counter += 1
@@ -158,6 +155,8 @@ class LedStateDetector:
         :param img: The BGR image of this led.
         :return: None
         """
+        if len(self._colors) == 0:
+            return
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
         hist = cv2.calcHist([hsv], [0], None, [180], [0, 179])
         if self.is_on is None:
@@ -169,27 +168,53 @@ class LedStateDetector:
                 for i in range(len(self._on_histogram)):
                     self._on_histogram[i] -= self._off_histogram[i]
                 temp = [i[0] for i in self._on_histogram]
-                _, self.color = color(temp)
+                _, self.color = self._color(temp)
         else:
             self._off_histogram = hist
 
+    def _color(self, hist):
+        values = []
+        for c in self._colors:
+            lower, upper = color_range.get(c)
+            if lower < 0 < upper:
+                values.append((sum(hist[lower:] + hist[0: upper]), c))
+            else:
+                values.append((sum(hist[lower:upper]), c))
+        print(values)
+        return max(values, key=itemgetter(0))
+
 
 if __name__ == '__main__':
-    led1 = LedStateDetector((980, 620, 1010, 660))
-    led2 = LedStateDetector((980, 660, 1010, 700))
-    vid = cv2.VideoCapture("resources/piOnOff.mp4")
+    tests = {
+        cv2.VideoCapture("resources/piOnOff.mp4"): [
+            # green
+            LedStateDetector((980, 620, 1030, 660), ["red", "green", "yellow", "cyan"]),
+            # red
+            LedStateDetector((980, 660, 1050, 700), ["red", "yellow", "purple"])],
+        cv2.VideoCapture("resources/piOnOff3.mp4"): [
+            # red
+            LedStateDetector((380, 955, 428, 1000), ["yellow", "red", "purple"]),
+            # green
+            LedStateDetector((429, 955, 470, 1000), ["red", "yellow", "cyan", "green"])],
+        cv2.VideoCapture("resources/piOnOff4.mp4"): [
+            # red
+            LedStateDetector((90, 313, 160, 365), ["yellow", "purple", "red"]),
+            # green
+            LedStateDetector((90, 366, 160, 410), ["green"])],
+    }
+    for video in tests:
+        leds = tests.get(video)
 
-    leds = [led1, led2]
-    frame_exists, frame = vid.read()
-    while frame_exists:
-        for led in leds:
-            if led.detect(frame, True):
-                if led.is_on:
-                    print("LED", led.id, "ON", "Time passed:", led.passed_time, "Color: ", led.color)
-                else:
-                    print("LED", led.id, "OFF", "Time passed:", led.passed_time)
-        cv2.imshow("Raw", frame)
-        if cv2.waitKey(10) == 27:
-            break
-        frame_exists, frame = vid.read()
-    cv2.destroyAllWindows()
+        frame_exists, frame = video.read()
+        while frame_exists:
+            for led in leds:
+                if led.detect(frame, True):
+                    if led.is_on:
+                        print("LED", led.id, "ON", "Time passed:", led.passed_time, "Color: ", led.color)
+                    else:
+                        print("LED", led.id, "OFF", "Time passed:", led.passed_time)
+            cv2.imshow("Raw", frame)
+            if cv2.waitKey(10) == 27:
+                break
+            frame_exists, frame = video.read()
+        cv2.destroyAllWindows()
