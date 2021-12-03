@@ -111,7 +111,7 @@ class LedStateDetector:
         """
         img = cv2.GaussianBlur(img, (3, 3), 0)
         gray_img = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
-        hist = cv2.calcHist([gray_img], [0], None, [256], [0, 256])
+        hist = cv2.calcHist([gray_img], [0], None, [256], [0, 255])
         if imshow:
             cv2.imshow(str(self.id) + "Gray", gray_img)
         hist_avg = avg(hist)
@@ -119,7 +119,6 @@ class LedStateDetector:
             if hist_avg in range(self._last_brightness - 10, self._last_brightness + 10) or self._last_brightness == -1:
                 self._last_brightness = hist_avg
                 return None
-                # print("In range")
             elif hist_avg > self._last_brightness:
                 self._on_values.append(hist_avg)
                 return True
@@ -160,7 +159,7 @@ class LedStateDetector:
         :return: None
         """
         hsv = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
-        hist = cv2.calcHist([hsv], [0], None, [360], [0, 259])
+        hist = cv2.calcHist([hsv], [0], None, [180], [0, 179])
         if self.is_on is None:
             self._on_histogram = hist
             self._off_histogram = hist
@@ -168,8 +167,9 @@ class LedStateDetector:
             self._on_histogram = hist
             if self._off_histogram is not None:
                 for i in range(len(self._on_histogram)):
-                    self._on_histogram[i] = max(self._on_histogram[i] - self._off_histogram[i], 0)
-                _, self.color = color([i for i in self._on_histogram[0]])
+                    self._on_histogram[i] -= self._off_histogram[i]
+                temp = [i[0] for i in self._on_histogram]
+                _, self.color = color(temp)
         else:
             self._off_histogram = hist
 
