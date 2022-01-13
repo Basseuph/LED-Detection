@@ -19,7 +19,7 @@ def detect_status(img):
     global matrix
 
     if matrix is None or matrix.check_if_outdated():
-        print("Calculating new matrix")
+        #print("Calculating new matrix")
         inv, corners = sift_detect.homography_by_sift(cv2.imread(os.path.join("referenceCropped.jpg"), cv2.IMREAD_COLOR), img)
         matrix = MatrixCache(inv, corners)
 
