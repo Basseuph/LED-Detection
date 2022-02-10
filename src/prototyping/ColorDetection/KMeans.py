@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from sklearn.cluster import KMeans
 import numpy as np
 
+# 3 clusters gave the most reliable results in testing
 clusters = 3
 
 
@@ -37,10 +38,10 @@ def _plot_colors(hist, centroids):
     return bar
 
 
-def k_means(img, title=""):
+def k_means(img, title: str = None):
     """
     :param img: A BGR image.
-    :param title: A title for naming the plot.
+    :param title: A title for the plot used for debugging.
     :return: The dominant cluster.
     """
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -52,7 +53,7 @@ def k_means(img, title=""):
 
     hist = _centroid_histogram(clt)
 
-    if title != "":
+    if title is not None:
         bar = _plot_colors(hist, clt.cluster_centers_)
         # show our color bart
         plt.figure()
