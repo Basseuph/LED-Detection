@@ -11,6 +11,19 @@ from copy import deepcopy
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
+# First, function to match all descriptors to each other.
+# It can be done more efficiently that this, but I am doing the vanilla way for clarity
+def distance_matrix(anchor, positive):
+    """Given batch of descriptors calculate distance matrix"""
+    # https://github.com/DagnyT/hardnet/blob/master/code/Losses.py#L5
+    d1_sq = torch.sum(anchor * anchor, dim=1).unsqueeze(-1)
+    d2_sq = torch.sum(positive * positive, dim=1).unsqueeze(-1)
+
+    eps = 1e-6
+    return torch.sqrt((d1_sq.repeat(1, positive.size(0)) + torch.t(d2_sq.repeat(1, anchor.size(0)))
+                       - 2.0 * torch.bmm(anchor.unsqueeze(0), torch.t(positive).unsqueeze(0)).squeeze(0)) + eps)
+
+
 def calc_scale(crn_pts_src, crn_pts_dst):
     """
     calculates the x scale and y scaling of the image by a set of corner points
@@ -63,13 +76,13 @@ def match_fginn(desc1, desc2, kps1, kps2):
     xy1 = np.concatenate([np.array(p.pt).reshape(1, 2) for p in kps1], axis=0)
     xy2 = np.concatenate([np.array(p.pt).reshape(1, 2) for p in kps2], axis=0)
 
-    dm = torch.cdist(torch.from_numpy(desc1.astype(np.float32)).to(device),
-                     torch.from_numpy(desc2.astype(np.float32)).to(device))
+    dm = distance_matrix(torch.from_numpy(desc1.astype(np.float32)).to(device),
+                         torch.from_numpy(desc2.astype(np.float32)).to(device))
     vals, idxs_in_2 = torch.min(dm, dim=1)
     # xy2, xy2 is not a typo below, because we need to have a distance between
     # keypoint in the same image
     km = torch.cdist(torch.from_numpy(xy2.astype(np.float32)).to(device),
-                         torch.from_numpy(xy2.astype(np.float32)).to(device))
+                     torch.from_numpy(xy2.astype(np.float32)).to(device))
     mask1 = km <= 10.0
     mask2 = mask1[idxs_in_2, :]
     dm[mask2] = 100000  # some big number to mask out
@@ -103,27 +116,7 @@ def homography_by_sift(ref_img, target_img, distance_factor=0.65, display_result
     dst = None
     # Match descriptors.
     matches = match_fginn(des1, des2, kp1, kp2)
-    if len(matches) > 10:
-        src_pts = np.float32([kp1[m.queryIdx].pt for m in matches]).reshape(-1, 1, 2)
-        dst_pts = np.float32([kp2[m.trainIdx].pt for m in matches]).reshape(-1, 1, 2)
-        homography_matrix, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 5.0)
-
-        matches_mask = mask.ravel().tolist()
-        h, w, d = ref_img.shape
-        pts = np.float32([[0, 0], [0, h - 1], [w - 1, h - 1], [w - 1, 0]])
-        dst = cv2.perspectiveTransform(np.array([pts]), homography_matrix)[0]
-        dst[1], dst[3] = dst[3], dst[1]
-    else:
-        # raise error
-        raise ("Not enough matches are found - {}/{}".format(len(matches), 10))
-
-    if display_result:
-        draw_params = dict(matchColor=(0, 255, 0),  # draw matches in green color
-                           singlePointColor=None,
-                           matchesMask=matches_mask,  # draw only inliers
-                           flags=2)
-        img3 = cv2.drawMatches(ref_img, kp1, target_img, kp2, matches, None, **draw_params)
-        cv2.imshow('Matching', img3)
+    homography_matrix, dst = ransac_and_draw_matches_cv2(kp1, kp2, matches, ref_img, target_img)
 
     return BoardOrientation(homography_matrix, dst, ref_img.shape[:2])
 
@@ -150,40 +143,32 @@ def decolorize(img):
     return cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
 
-def ransac_and_draw_matches_cv2(kps1, kps2, tentatives, img1, img2, display_result=False):
-    """
-    filters the matches using RANSAC and draws the matches
-    :param display_result: TRUE if the result should be displayed
-    :param kps1: are the key points of the first image
-    :param kps2: are the key points of the second image
-    :param tentatives: are the tentatives matches
-    :param img1: is the first image
-    :param img2: is the second image
-    :return:
-    """
+def ransac_and_draw_matches_cv2(kps1, kps2, tentatives, img1, img2):
     good = []
     for i in range(len(tentatives)):
         good.append(cv2.DMatch(tentatives[i, 0], tentatives[i, 1], 1))
     src_pts = np.float32([kps1[m[0]].pt for m in tentatives]).reshape(-1, 1, 2)
     dst_pts = np.float32([kps2[m[1]].pt for m in tentatives]).reshape(-1, 1, 2)
-    H, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 1.0)
+    homography_matrix, mask = cv2.findHomography(src_pts, dst_pts, cv2.RANSAC, 1.0)
     print(deepcopy(mask).astype(np.float32).sum(), 'inliers found')
-    if H is None:
-        raise Exception("No homography found")
-
-    if display_result:
-        matches_mask = mask.ravel().tolist()
-        h, w, _ = img1.shape
-        pts = np.float32([[0, 0], [0, h - 1], [w - 1, h - 1], [w - 1, 0]]).reshape(-1, 1, 2)
-        dst = cv2.perspectiveTransform(pts, H)
-        img2 = cv2.polylines(img2, [np.int32(dst)], True, 255, 3, cv2.LINE_AA)
-        draw_params = dict(matchColor=(0, 255, 0),  # draw matches in green color
-                           singlePointColor=None,
-                           matchesMask=matches_mask,  # draw only inliers
-                           flags=2)
-        img3 = cv2.drawMatches(decolorize(img1), kps1, decolorize(img2), kps2, good, None, **draw_params)
-        plt.imshow(img3, 'gray'), plt.show()
-    return H
+    if homography_matrix is None:
+        raise ("No homography found")
+    matchesMask = mask.ravel().tolist()
+    h, w, ch = img1.shape
+    pts = np.float32([[0, 0], [0, h - 1], [w - 1, h - 1], [w - 1, 0]]).reshape(-1, 1, 2)
+    dst = cv2.perspectiveTransform(pts, homography_matrix)
+    # Ground truth transformation
+    # dst_GT = cv2.perspectiveTransform(pts, H_gt)
+    img2_tr = cv2.polylines(decolorize(img2), [np.int32(dst)], True, (0, 0, 255), 3, cv2.LINE_AA)
+    # img2_tr = cv2.polylines(deepcopy(img2_tr),[np.int32(dst_GT)],True,(0,255,0),3, cv2.LINE_AA)
+    # Blue is estimated, green is ground truth homography
+    draw_params = dict(matchColor=(255, 255, 0),  # draw matches in yellow color
+                       singlePointColor=None,
+                       matchesMask=matchesMask,  # draw only inliers
+                       flags=2)
+    img_out = cv2.drawMatches(decolorize(img1), kps1, img2_tr, kps2, good, None, **draw_params)
+    plt.imshow(img_out)
+    return homography_matrix, dst
 
 
 class HomographyProvider():
