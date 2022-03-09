@@ -68,8 +68,8 @@ def match_fginn(desc1, desc2, kps1, kps2):
     vals, idxs_in_2 = torch.min(dm, dim=1)
     # xy2, xy2 is not a typo below, because we need to have a distance between
     # keypoint in the same image
-    km = distance_matrix(torch.from_numpy(xy2.astype(np.float32)).cuda(),
-                         torch.from_numpy(xy2.astype(np.float32)).cuda())
+    km = torch.cdist(torch.from_numpy(xy2.astype(np.float32)).to(device),
+                         torch.from_numpy(xy2.astype(np.float32)).to(device))
     mask1 = km <= 10.0
     mask2 = mask1[idxs_in_2, :]
     dm[mask2] = 100000  # some big number to mask out
