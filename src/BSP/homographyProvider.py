@@ -48,6 +48,18 @@ def scale_point(point, scaling):
     scaled_point = (point[0] * scaling[0], point[1] * scaling[1])
     return scaled_point
 
+#Second nearest neighbor ratio matching strategy - SNN
+#David Lowe.  Distinctive image features from scale-invariant keypoints. IJCV, 2004
+def match_snn(desc1, desc2):
+    dm = distance_matrix(torch.from_numpy(desc1.astype(np.float32)).to(device),
+                        torch.from_numpy(desc2.astype(np.float32)).to(device))
+    vals, idxs_in_2 = torch.topk(dm, 2 ,dim=1, largest=False)
+    mask = (vals[:,0] / vals[:,1]) <= 0.8
+    idxs_in1 = torch.arange(0, idxs_in_2.size(0))[mask]
+    idxs_in_2 = idxs_in_2[:,0][mask]
+    matches_idxs = torch.cat([idxs_in1.view(-1,1), idxs_in_2.cpu().view(-1,1)],dim=1)
+    return matches_idxs.cpu().data.numpy()
+
 
 def knn_match(des1, des2, distance_factor=0.65):
     """
