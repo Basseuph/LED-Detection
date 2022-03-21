@@ -1,19 +1,7 @@
 import cv2
 import collections
 
-
-def avg(hist: [[int]]) -> int:
-    """
-    Returns the average in a histogram, returned by cv2.calcHist.
-    :param hist: The histogram.
-    :return: The average of the given histogram.
-    """
-    s = 0
-    e = 0
-    for i in range(len(hist)):
-        e += hist[i, 0]
-        s += i * hist[i, 0]
-    return int(s / e)
+import Brightness
 
 
 class BrightnessComparison:
@@ -40,24 +28,23 @@ class BrightnessComparison:
             cv2.imshow(window_name, gray_img)
 
         # get the average brightness in the given image
-        hist = cv2.calcHist([gray_img], [0], None, [256], [0, 255])
-        hist_avg = avg(hist)
+        brightness = Brightness.avg_brightness(gray_img)
 
         # if no known brightness values for on
         if len(self._on_values) == 0:
-            if hist_avg in range(self._last_brightness - self._deviation,
-                                 self._last_brightness + self._deviation) or self._last_brightness == -1:
-                self._last_brightness = hist_avg
+            if brightness in range(self._last_brightness - self._deviation,
+                                   self._last_brightness + self._deviation) or self._last_brightness == -1:
+                self._last_brightness = brightness
                 return None
-            elif hist_avg > self._last_brightness:
-                self._on_values.append(hist_avg)
+            elif brightness > self._last_brightness:
+                self._on_values.append(brightness)
                 return True
             else:
                 self._on_values.append(self._last_brightness)
                 return False
         else:
             on_avg = int(sum(self._on_values) / len(self._on_values))
-            if hist_avg in range(on_avg - self._deviation, 256):
-                self._on_values.append(hist_avg)
+            if brightness in range(on_avg - self._deviation, 256):
+                self._on_values.append(brightness)
                 return True
             return False
