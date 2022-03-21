@@ -7,6 +7,7 @@ from ColorDetection.HueComparison import Comparison
 from ColorDetection import KMeans
 from ColorDetection import DominantColor
 from ColorDetection import Util
+from StateDetection.BackgroundSubtractor import BackgroundSubtraction
 
 
 class LedStateDetector:
@@ -28,7 +29,7 @@ class LedStateDetector:
         self._last_state_time = None
         self._id = LedStateDetector._counter
         LedStateDetector._counter += 1
-        self._sub = cv2.createBackgroundSubtractorMOG2()
+        self._sub = BackgroundSubtraction()
         self._hue_comparison = Comparison(colors)
 
         if name is None:
@@ -49,6 +50,7 @@ class LedStateDetector:
         :return: True if the led has changed it's state.
         """
         img = self.frame_cutout(image)
+        sub_result = self._sub.detect(img, "Subtraction")
 
         if imshow:
             on = self._brightness.detect(img, self.name + " Gray")
@@ -57,10 +59,11 @@ class LedStateDetector:
 
         change = on is not None and (self.is_on is None or on is not self.is_on)
         if change:
+            print("Sub:", sub_result)
             self._state_change(on)
             comparison = self._hue_comparison.color_detection(img, on)
             if self.is_on:
-                rgb = KMeans.k_means(img, title=self.name + ", " + str(self.is_on))
+                rgb = KMeans.k_means(img)
                 hsv = colorsys.rgb_to_hsv(rgb[0] / float(255), rgb[1] / float(255), rgb[2] / float(255))
                 k_mean = Util.get_color(int(hsv[0] * 180))
                 d = DominantColor.get_dominant_color_value(img)
@@ -93,23 +96,11 @@ class LedStateDetector:
 
 if __name__ == '__main__':
     tests = {
-        cv2.VideoCapture("resources/piOnOff.mp4"): [
-            # green
-            LedStateDetector((980, 620, 1030, 660), name="Green", colors=["red", "green", "yellow", "cyan"]),
-            # red
-            LedStateDetector((980, 660, 1050, 700), name="Red", colors=["red", "yellow", "purple"]),
-        ],
-        cv2.VideoCapture("resources/piOnOff3.mp4"): [
-            # red
-            LedStateDetector((380, 955, 428, 1000), name="Red", colors=["yellow", "red", "purple"]),
-            # green
-            LedStateDetector((429, 955, 470, 1000), name="Green", colors=["red", "yellow", "cyan", "green"]),
-        ],
-        cv2.VideoCapture("resources/piOnOff4.mp4"): [
-            # red
-            LedStateDetector((90, 313, 160, 365), name="Red", colors=["yellow", "purple", "red"]),
-            # green
-            LedStateDetector((90, 366, 160, 410), name="Green", colors=["green"]),
+        cv2.VideoCapture("resources/output.avi"): [
+            # LedStateDetector((439, 340, 452, 349), name="Counter[0]", colors=["green", "yellow", "red"]),
+            # LedStateDetector((440, 335, 447, 339), name="Counter[1]", colors=["green", "yellow", "red"]),
+            # LedStateDetector((438, 327, 449, 334), name="Counter[2]", colors=["green", "yellow", "red"]),
+            LedStateDetector((473, 392, 486, 410), name="Blinking", colors=["red", "green", "yellow", "cyan"]),
         ],
     }
 
@@ -127,7 +118,7 @@ if __name__ == '__main__':
                         print(led.name, "OFF", "Time passed:", led.passed_time)
             cv2.imshow("Raw", frame)
             cv2.resizeWindow("Raw", 500, 500)
-            key = cv2.waitKey(10)
+            key = cv2.waitKey(1)
             if key == 27:
                 break
             if key == 32:
