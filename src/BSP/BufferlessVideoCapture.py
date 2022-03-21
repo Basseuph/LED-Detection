@@ -12,10 +12,26 @@ class BufferlessVideoCapture:
 
     def __init__(self, name):
         self.cap = cv2.VideoCapture(name)
+        # set camera settings
+        self._set_camera_settings_HD()
+
+        if not self.cap.isOpened():
+            raise IOError("Couldn't open stream for device {}".format(name))
+
+
         self.q = queue.Queue()
         t = threading.Thread(target=self._reader)
         t.daemon = True
         t.start()
+
+    def _set_camera_settings_HD(self):
+        """
+        Sets the camera settings to .
+        :return:
+        """
+        self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+        self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+        self.cap.set(cv2.CAP_PROP_FPS, 30)
 
     # read frames as soon as they are available, keeping only most recent one
     def _reader(self):
