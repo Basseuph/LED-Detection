@@ -2,7 +2,7 @@ import cv2
 
 from operator import itemgetter
 
-from src.prototyping.ColorDetection import Util
+from src.prototyping.LED.ColorDetection import Util
 
 
 class Comparison:

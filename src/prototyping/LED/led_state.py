@@ -2,12 +2,10 @@ import time
 import colorsys
 import cv2
 
-from StateDetection.BrightnessComparison import BrightnessComparison
-from ColorDetection.HueComparison import Comparison
-from ColorDetection import KMeans
-from ColorDetection import DominantColor
-from ColorDetection import Util
-from StateDetection.BackgroundSubtractor import BackgroundSubtraction
+from src.prototyping.LED.StateDetection.BrightnessComparison import BrightnessComparison
+from src.prototyping.LED.ColorDetection.HueComparison import Comparison
+from src.prototyping.LED.ColorDetection import DominantColor, KMeans, Util
+from src.prototyping.LED.StateDetection.BackgroundSubtractor import BackgroundSubtraction
 
 
 class LedStateDetector:
@@ -96,7 +94,7 @@ class LedStateDetector:
 
 if __name__ == '__main__':
     tests = {
-        cv2.VideoCapture("resources/output.avi"): [
+        cv2.VideoCapture("../resources/output.avi"): [
             # LedStateDetector((439, 340, 452, 349), name="Counter[0]", colors=["green", "yellow", "red"]),
             # LedStateDetector((440, 335, 447, 339), name="Counter[1]", colors=["green", "yellow", "red"]),
             # LedStateDetector((438, 327, 449, 334), name="Counter[2]", colors=["green", "yellow", "red"]),
@@ -122,6 +120,6 @@ if __name__ == '__main__':
             if key == 27:
                 break
             if key == 32:
-                cv2.imwrite("frame.png", frame)
+                cv2.imwrite("../frame.png", frame)
             frame_exists, frame = video.read()
         cv2.destroyAllWindows()

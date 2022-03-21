@@ -1,7 +1,7 @@
 import cv2
 import collections
 
-import Brightness
+import src.prototyping.LED.StateDetection.Brightness as Brightness
 
 
 class BrightnessComparison:
